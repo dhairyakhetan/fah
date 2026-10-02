@@ -1,0 +1,194 @@
+.orgchart { margin: 4px 0 0; }
+
+.orgchart-root-wrap {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.orgchart-root-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 22px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--paper);
+  border: var(--bd);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-cta);
+}
+
+.orgchart-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px 16px;
+  padding-top: 30px;
+  margin-top: 2px;
+}
+
+/* Trunk line from the root pill down to the department row. */
+.orgchart-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 30px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+
+.orgchart-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Branch tick from the trunk line to each department card. */
+.orgchart-node::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 2px;
+  height: 30px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+
+.orgchart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  padding: 16px 12px;
+  border: var(--bd);
+  border-radius: var(--r-inner);
+  background: var(--dept, var(--card));
+  box-shadow: var(--shadow-cta);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.orgchart-card:hover,
+.orgchart-card:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 0 var(--ink);
+}
+.orgchart-card:focus-visible { outline: 3px solid var(--grape); outline-offset: 2px; }
+.orgchart-card.is-onink { color: var(--paper); }
+
+.orgchart-card-name {
+  font-family: var(--eina);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.2;
+}
+.orgchart-card-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.72;
+}
+
+.orgchart-toggle {
+  margin-top: 8px;
+  align-self: center;
+  border: none;
+  background: none;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-2);
+  cursor: pointer;
+  padding: 4px 6px;
+  /* 44px TOUCH FLOOR (audit 2026-09-17, responsiveness P2). Measured live at
+     100x22 before this: a 22px-tall control that is the ONLY way to reveal a
+     department's sub-teams, and therefore the only route to 25 pages. The app's
+     44px rule (v6.css:2310) is a whitelist of nine class names and this was not
+     on it, so nothing covered it.
+
+     min-height rather than more padding: the label stays optically where it was
+     and the extra height is centred around it, so nothing in the chart moves.
+     The inline-flex is what makes min-height apply to a <button> reliably. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  /* The visual gap the old 8px margin gave is now partly inside the target, so
+     trim the margin to keep the chart's spacing identical. */
+  margin-top: 0;
+}
+.orgchart-toggle:hover,
+.orgchart-toggle:focus-visible { color: var(--ink); text-decoration: underline; }
+
+.orgchart-subrow {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 14px;
+  border-left: 2px dashed var(--line);
+}
+
+.orgchart-subnode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: var(--bd);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  font-family: var(--eina);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  /* These nodes are <a> elements now (see OrgChart.tsx) so that 25 sub-team
+     pages have a crawlable inbound link. Reset the anchor defaults the button
+     never had, so the look is byte-identical to before. */
+  text-decoration: none;
+}
+.orgchart-subnode:hover,
+.orgchart-subnode:focus-visible {
+  border-color: var(--ink);
+  transform: translate(-1px, -1px);
+}
+.orgchart-subnode-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.orgchart-skeleton { max-width: 720px; margin: 0 auto; }
+
+@media (max-width: 900px) {
+  .orgchart-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .orgchart-row { grid-template-columns: 1fr; gap: 16px; }
+  .orgchart-node::before, .orgchart-row::before { display: none; }
+  .orgchart-row { padding-top: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orgchart-card, .orgchart-subnode { transition: none; }
+  .orgchart-card:hover, .orgchart-subnode:hover { transform: none; }
+}

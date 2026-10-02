@@ -1,0 +1,444 @@
+/* Extracted from TeamsPage.tsx's inline <style> block(s) (Phase 1.3). */
+
+        /* Was referenced on the open-roles live dot but never defined in this
+           file, so the dot rendered static instead of pulsing - scoped here
+           (mirrors auth/PendingApprovalPage.tsx's own local definition of the
+           same animation name) rather than promoted to the shared stylesheet. */
+        @keyframes pending-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(27,138,90,0.6); }
+          50%       { box-shadow: 0 0 0 8px rgba(27,138,90,0); }
+        }
+        /* The hero explainer sits under the intro paragraph and shares its measure,
+   so the steps read as part of the same thought rather than a second column. */
+.teams-hero-steps {
+  max-width: 480px;
+  border-top-color: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+.teams-hero {
+          /* Vertical padding only - the child .container already applies
+             var(--page-px) horizontally. This used to hardcode 24px on top
+             of that, doubling the gutter (same bug fixed on the Projects/
+             Openings hero sections). */
+          padding: clamp(26px, 5vw, 60px) 0 clamp(14px, 2.5vw, 22px);
+          border-bottom: 1px solid var(--line);
+          margin-bottom: 14px;
+        }
+        .teams-hero-title {
+          /* 05.1: fluid but tuned tighter than a bare display headline (42/8vw/88)
+             because three inline UI objects now share the line - the wider clamp
+             pushed the toggle/discs past a comfortable line length on mid-width
+             phones. */
+          font-size: clamp(42px, 6.4vw, 76px);
+          margin: 0;
+          line-height: 1.05;
+        }
+
+        /* ── 05.1 - the headline lockups ──────────────────────────────────
+           UI objects set INTO the word gaps: inline-flex, in the text flow,
+           position: static. They push the words apart; they never sit on top
+           of them - this is the overlap rule satisfied by construction, so
+           there is no z-index anywhere in this block and there must not be. */
+        /* `vertical-align: middle` on the shared base, not a per-object px
+           offset: the previous -14px/-9px/-12px tuning was measured against
+           an inconsistent reference — a plain decorative span (the discs, no
+           text descendant) and the toggle (which wraps real text, "ON")
+           synthesize a different baseline for the SAME numeric vertical-align
+           value, because a baseline-participating descendant (the "ON" label)
+           changes what the browser treats as this box's own baseline. That's
+           what read as "floating" - the toggle sat ~19px below the text
+           baseline instead of centred on the cap-height, confirmed via
+           getBoundingClientRect against the headline's own text-node boxes.
+           `middle` aligns every object's own vertical centre to the same
+           x-height-relative point regardless of what's inside it, so discs,
+           wire and toggle read as sitting in the same place at every size. */
+        .tm-lockup { display: inline-flex; align-items: center; vertical-align: middle; }
+        .tm-lockup--discs  { margin: 0 6px; }
+        .tm-lockup--wire   { margin: 0 8px 0 4px; }
+        .tm-lockup--toggle { margin: 0 8px; }
+
+        /* Three discs, -16px overlap, each keylined against the page like a
+           die-cut sticker (box-shadow ring instead of a border so it reads as
+           a cutout, not a stroke). */
+        .tm-disc {
+          width: 52px; height: 52px; border-radius: 50%;
+          display: inline-block; flex: none;
+          box-shadow: 0 0 0 4px var(--bg);
+          border: 2px solid var(--ink);
+          box-sizing: border-box;
+        }
+        .tm-disc + .tm-disc { margin-left: -16px; }
+
+        /* The wire connector is an inline SVG (dashed path + two dot
+           terminals) rather than a border-top trick, because a border cannot
+           carry the end dots. */
+        .tm-lockup--wire svg { display: block; }
+
+        /* A real-looking switch inside an ink pill: welfare track, ink knob
+           pushed right (= ON), mono "ON" label in paper on the ink ground.
+           Entirely decorative - no role="switch", no tabindex, no handler. */
+        .tm-toggle-pill {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: var(--ink); border-radius: 999px;
+          padding: 4px 12px 4px 4px;
+        }
+        .tm-toggle-track {
+          width: 46px; height: 26px; flex: none;
+          border-radius: 999px; background: var(--welfare);
+          display: flex; align-items: center; padding: 3px;
+          box-sizing: border-box;
+        }
+        .tm-toggle-knob {
+          width: 20px; height: 20px; border-radius: 50%;
+          background: var(--ink); margin-left: auto;
+        }
+        .tm-toggle-on {
+          font-family: var(--mono); font-size: 11px; font-weight: 800;
+          letter-spacing: 0.06em; color: var(--bg);
+        }
+
+        /* Phone (<=480px): "three objects on desktop, two on phone is already
+           the design" (05.1) - the wire is the one dropped, discs shrink to
+           30px and the toggle to 32x18, and everything stays inline (no
+           object becomes its own row). Exact phone vertical-align/margin
+           values aren't specced for the smaller objects; scaled proportionally
+           from the desktop ones. */
+        @media (max-width: 480px) {
+          .tm-lockup--wire { display: none; }
+          .tm-lockup--discs { margin: 0 4px; }
+          .tm-disc { width: 30px; height: 30px; box-shadow: 0 0 0 3px var(--bg); }
+          .tm-disc + .tm-disc { margin-left: -10px; }
+          .tm-lockup--toggle { margin: 0 6px; }
+          .tm-toggle-track { width: 32px; height: 18px; padding: 2px; }
+          .tm-toggle-knob { width: 13px; height: 13px; }
+          .tm-toggle-pill { padding: 3px 9px 3px 3px; gap: 6px; }
+          .tm-toggle-on { font-size: 9px; }
+        }
+
+        /* ── 05.2 - the team grid ─────────────────────────────────────────
+           4-up desktop, 2-up phone (never 1-up - eight departments read as a
+           jump cut to a single column). "Show 4 more" only ever applies below
+           the phone breakpoint; desktop always renders all eight. */
+        /* minmax(0, 1fr), not a bare 1fr: a bare 1fr's implicit min-size is
+           `auto` (= the widest child's min-content), so a long uppercase
+           department name/bio word can force every track wider than the
+           container instead of wrapping - measured at 375px: scrollWidth 390
+           vs clientWidth 375 with a bare 1fr, gone with minmax(0, 1fr). Same
+           overflow class README names for fixed-width strips; this is the
+           grid-track version of it. */
+        .teams-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+          padding-bottom: clamp(36px, 5vw, 64px);
+        }
+        @media (max-width: 1080px) { .teams-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (max-width: 760px)  {
+          .teams-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-bottom: 8px; }
+          .teams-grid:not(.show-all) .team-card-extra { display: none; }
+        }
+        .teams-show-more-wrap { display: none; }
+        @media (max-width: 760px) {
+          .teams-show-more-wrap {
+            display: flex; justify-content: center;
+            padding: 4px 0 clamp(28px, 6vw, 44px);
+          }
+        }
+
+        /* ── Team card ── the 2026-09-07 photo-led rebuild ────────────────
+           ANATOMY (concentric, DESIGN.md's 999/32/22/14 spine):
+             .card            outer shell, radius 32, --pad-card 10
+               .tc-head       header block, radius 22 (= 32 − 10)
+                 photo path   <Img ctx="cover"> + .tc-head-wash
+                 no-photo     .tc-fan — three paper tiles, radius 14 (= 22 − 8)
+                 .tc-go       round affordance, radius 999
+               .team-card-body
+                 .tc-title    bold display title
+                 .tc-meta     "volunteer team · 56 members", quiet grey
+                 .tc-roster   stacked discs (radius 999) + "+N"
+                 .team-card-bio
+                 .team-card-foot
+
+           Depth is stacking (white card on cream page, hue block on white,
+           paper tiles on hue), never a hard offset shadow — those are retired
+           outside .btn-primary and stamped stickers. */
+        /* <Reveal> is the grid item, not the card, so the card does not
+           stretch on its own and a row rendered ragged (measured live: 335 vs
+           342 in the same row). Stretch both. */
+        .teams-grid > * { display: flex; }
+        .teams-grid > * > .team-card,
+        .teams-grid > .team-card { width: 100%; }
+        .team-card {
+          display: flex;
+          flex-direction: column;
+          text-decoration: none;
+          color: inherit;
+          transform: rotate(var(--tilt, 0deg));
+          transition: transform 0.18s var(--ease-pop), box-shadow 0.18s var(--ease-out);
+        }
+        .team-card:hover { transform: translateY(-3px) rotate(0deg); }
+        .team-card:active { transform: scale(0.96) rotate(0deg); }
+        .team-card:focus-visible { outline: 3px solid var(--grape); outline-offset: 2px; }
+
+        /* ── Header block ────────────────────────────────────────────────
+           ONE slot, two paths, identical geometry. `banner_url` going
+           non-null swaps the fan for the photo and moves nothing else. */
+        .tc-head {
+          position: relative;
+          overflow: hidden;
+          border-radius: var(--r-inner);
+          height: 132px;
+          flex: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        /* Real banner (AQ.Ventures is the only live one). Sizing goes through
+           <Img ctx="cover">, which runs sized() — never a raw full-res URL. */
+        .tc-head-photo {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        /* The reference's coloured wash over the photo. An alpha on an IMAGE,
+           never on type — the full-opacity rule governs text on a fill. */
+        .tc-head-wash {
+          position: absolute;
+          inset: 0;
+          opacity: 0.34;
+          pointer-events: none;
+        }
+
+        /* ── The no-photo path — the COMMON case ─────────────────────────
+           Seven of the eight live teams have no banner and none has a logo,
+           so this is the primary treatment, not a fallback. The hue is the
+           ground and the fanned paper tiles are the reference's layered photo
+           strip drawn in paper: a deliberate emblem at the exact size a photo
+           will later occupy, rather than a blank rectangle that reads broken. */
+        .tc-fan {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .tc-fan-tile {
+          position: absolute;
+          width: 52px;
+          height: 72px;
+          border-radius: var(--r-tight);
+          background: var(--card);
+          /* The ring is the HUE, not a hairline: three overlapping white tiles
+             on a saturated ground merge into one blob without a gap between
+             them (measured on the first live pass — the fan read as a single
+             rounded rectangle). The hue ring cuts each tile out of the ground
+             the way the fanned photos in the reference are cut out of theirs. */
+          box-shadow: 0 0 0 3px var(--accent), var(--lift-1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .tc-fan-tile--l { transform: translateX(-46px) rotate(-11deg); }
+        .tc-fan-tile--r { transform: translateX(46px) rotate(11deg); }
+        .tc-fan-tile--c {
+          width: 60px;
+          height: 82px;
+          font-size: 28px;
+          line-height: 1;
+          transform: rotate(-1.5deg);
+        }
+
+        /* Round affordance. Non-interactive by construction (an aria-hidden
+           span inside the link), so it needs no hit target of its own — the
+           whole card is the target and is far past 44×44. */
+        .tc-go {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 34px;
+          height: 34px;
+          border-radius: 999px;
+          background: var(--card);
+          color: #0A0A0A;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: var(--mono);
+          font-size: 15px;
+          font-weight: 800;
+          box-shadow: var(--lift-1);
+          transition: transform 0.18s var(--ease-pop);
+        }
+        .team-card:hover .tc-go { transform: translateX(3px); }
+
+        /* ── Body ── white shell, never the page cream. */
+        .team-card-body {
+          padding: 12px 4px 2px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .tc-title {
+          font-family: var(--display);
+          font-weight: 900;
+          font-size: 19px;
+          line-height: 1.08;
+          letter-spacing: -0.02em;
+          color: var(--ink);
+          text-wrap: balance;
+        }
+        /* The quiet grey meta line. --ink-3 (#5A5A55) on --card (#FFFFFF) is
+           ~6.9:1 — quiet, and still comfortably past AA. */
+        .tc-meta {
+          font-family: var(--mono);
+          font-size: 11.5px;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          color: var(--ink-3);
+          display: flex;
+          align-items: baseline;
+          flex-wrap: wrap;
+          gap: 0 5px;
+        }
+        .tc-dot { opacity: 0.75; }
+
+        /* ── The stacked roster row ──────────────────────────────────────
+           Initials are the PRIMARY state (five avatars exist org-wide), so
+           the disc is designed, not patched: department hue at full
+           saturation, full-opacity ink or paper letters picked by
+           isDarkDepartmentFill in the TSX, and a 2px --card ring so the
+           −9px overlap stays readable as separate people. */
+        .tc-roster { display: flex; align-items: center; padding-left: 2px; }
+        .tc-face {
+          width: 30px;
+          height: 30px;
+          border-radius: 999px;
+          flex: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-sizing: border-box;
+          box-shadow: 0 0 0 2px var(--card);
+          font-family: var(--mono);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+        }
+        .tc-face + .tc-face { margin-left: -9px; }
+        .tc-face-img { object-fit: cover; }
+        /* A roster row whose member row carries no name at all: a dashed ring,
+           no letter. Never invent an initial for an unresolved identity
+           (same rule as components/Avatar.tsx). */
+        /* audit-ok: dashed - an unresolved identity, never an invented initial. */
+        .tc-face-unresolved {
+          background: transparent !important;
+          border: 1.5px dashed var(--line-2);
+          box-shadow: 0 0 0 2px var(--card);
+        }
+        .tc-face-more {
+          background: var(--bg-2);
+          color: var(--ink);
+        }
+
+        .team-card-bio {
+          font-family: var(--eina);
+          font-size: 13px;
+          line-height: 1.5;
+          color: var(--ink-2);
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .team-card-foot { margin-top: auto; padding-top: 2px; }
+        .team-card-openings {
+          font-family: var(--mono);
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+        }
+        /* "nothing open" is a state, not a claim about a number - var(--ink-3),
+           never the *-ink link colour used when a real count is open. */
+        .team-card-openings--none {
+          color: var(--ink-3);
+          font-weight: 700;
+        }
+
+        /* Skeleton — same geometry as the real card so nothing shifts. */
+        .team-card-skel { display: flex; flex-direction: column; }
+
+        /* ── Zero-teams empty state — the fanned card stack ──────────────
+           UNREACHABLE with the current data (eight active teams); the
+           per-category arm is the one that can actually render. */
+        .teams-empty {
+          max-width: 420px;
+          margin: 0 auto clamp(36px, 6vw, 64px);
+          padding: clamp(28px, 5vw, 40px) 24px 32px;
+          text-align: center;
+        }
+        .te-stack {
+          position: relative;
+          display: block;
+          width: 100%;
+          height: 108px;
+          margin-bottom: 18px;
+        }
+        .te-stack-card {
+          position: absolute;
+          left: 50%;
+          top: 8px;
+          width: 66px;
+          height: 88px;
+          margin-left: -33px;
+          border-radius: var(--r-tight);
+          background: var(--card);
+          border: var(--hair-2);
+          box-shadow: var(--lift-1);
+        }
+        /* The stack sits ON the white card, so a white centre tile with a 12%
+           hairline vanished against it (seen on the first live pass). Ground
+           the tiles in the cream family instead: page cream for the front
+           tile, the darker cream for the two behind it. */
+        .te-stack-card--l { transform: translateX(-40px) rotate(-11deg); background: var(--bg-2); }
+        .te-stack-card--r { transform: translateX(40px) rotate(11deg); background: var(--bg-2); }
+        .te-stack-card--c { transform: rotate(-2deg); background: var(--bg); box-shadow: var(--lift-2); }
+        .teams-empty-title { font-size: 26px; }
+        .teams-empty-sub {
+          margin-top: 8px;
+          font-family: var(--eina);
+          font-size: 14px;
+          line-height: 1.5;
+          color: var(--ink-3);
+        }
+        .teams-empty-btn { margin-top: 18px; min-height: 44px; }
+
+        /* Phone: the header block shrinks but keeps its radius spine. */
+        @media (max-width: 760px) {
+          .tc-head { height: 116px; }
+          .tc-fan-tile { width: 42px; height: 58px; box-shadow: 0 0 0 2.5px var(--accent), var(--lift-1); }
+          .tc-fan-tile--l { transform: translateX(-37px) rotate(-11deg); }
+          .tc-fan-tile--r { transform: translateX(37px) rotate(11deg); }
+          .tc-fan-tile--c { width: 48px; height: 66px; font-size: 23px; }
+          .tc-title { font-size: 17px; }
+          .tc-meta { font-size: 10.5px; }
+          .team-card-bio { font-size: 12.5px; }
+          .tc-face { width: 26px; height: 26px; font-size: 10px; }
+          .tc-face + .tc-face { margin-left: -8px; }
+        }
+
+        /* Reduced motion: no idle tilt, no hover translate, no arrow nudge.
+           Matches the global @media (prefers-reduced-motion: reduce) rules
+           and framer-motion's useReducedMotion path in <Reveal>. */
+        @media (prefers-reduced-motion: reduce) {
+          .team-card,
+          .team-card:hover,
+          .team-card:active { transform: none; transition: none; }
+          .team-card:hover .tc-go { transform: none; }
+          .tc-go { transition: none; }
+        }
