@@ -1,0 +1,15 @@
+/* /games (the hub) and /games/:slug (one game). Cards reuse .card; only the layout lives here. */
+.gm-wrap { max-width: 1100px; margin: 0 auto; padding: 48px 20px 80px; }
+.gm-kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 14px; }
+.gm-title { margin: 0 0 12px; }
+.gm-sub { max-width: 560px; margin: 0 0 32px; }
+.gm-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.gm-card { display: flex; flex-direction: column; gap: 10px; padding: 20px; text-decoration: none; color: inherit; min-height: 160px; border-top: 6px solid var(--gm-hue, var(--lemon)); }
+.gm-card h2 { margin: 0; font-size: 22px; }
+.gm-card p { margin: 0; flex: 1; }
+.gm-card .gm-play { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.gm-empty { padding: 36px 24px; text-align: center; }
+.gm-empty h2 { margin: 0 0 8px; }
+.gm-empty p { margin: 0 auto 18px; max-width: 420px; }
+.gm-back { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 12px; }
+.gm-stage { min-height: 360px; }
